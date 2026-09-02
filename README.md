@@ -2,11 +2,13 @@
   <img src="https://raw.githubusercontent.com/alvarobartt/investpy/master/docs/source/_static/logo.png" hspace="20">
 </p>
 
+## :warning: `investpy` is not working fine currently due to some Investing.com changes in their APIs, so please use [`investiny`](https://github.com/alvarobartt/investiny) in the meantime as I'm actively updating it and adding more and more features of some temporary solutions while we fix `investpy`. Thanks!
+
 <h2 align="center">Financial Data Extraction from Investing.com with Python</h2>
 
 investpy is a Python package to retrieve data from [Investing.com](https://www.investing.com/), which provides data retrieval 
-from up to: 39952 stocks, 82221 funds, 11403 ETFs, 2029 currency crosses, 7797 indices, 688 bonds, 66 commodities, 250 certificates, 
-and 2812 cryptocurrencies.
+from up to 39952 stocks, 82221 funds, 11403 ETFs, 2029 currency crosses, 7797 indices, 688 bonds, 66 commodities, 250 certificates, 
+and 4697 cryptocurrencies.
 
 investpy allows the user to download both recent and historical data from all the financial products indexed at Investing.com. 
 **It includes data from all over the world**, from countries such as United States, France, India, Spain, Russia, or Germany, 
@@ -21,7 +23,6 @@ investpy to be one of the most consistent packages when it comes to financial da
 [![Package Status](https://img.shields.io/pypi/status/investpy.svg)](https://pypi.org/project/investpy/)
 [![Build Status](https://github.com/alvarobartt/investpy/workflows/run_tests/badge.svg)](https://github.com/alvarobartt/investpy/actions?query=workflow%3Arun_tests)
 [![Documentation Status](https://readthedocs.org/projects/investpy/badge/?version=latest)](https://investpy.readthedocs.io/)
-[![Code Coverage](https://codecov.io/gh/alvarobartt/investpy/branch/master/graph/badge.svg)](https://codecov.io/gh/alvarobartt/investpy)
 
 **If you want to support the project, you can buy the developer a coffee. More information at: [buy-me-a-coffee](https://github.com/alvarobartt/buy-me-a-coffee)**
 
@@ -51,6 +52,9 @@ some basic functionality will be sorted out with sample Python code blocks. Addi
 can be found under [examples/](https://github.com/alvarobartt/investpy/tree/master/examples) directory, which 
 contains a collection of Jupyter Notebooks on how to use investpy and handle its data.
 
+:pushpin: __Note that `investpy.search_quotes` is the only function that ensures that the data is updated and aligned 1:1 with
+the data provided by Investing.com!__
+
 ### :chart_with_upwards_trend: Recent/Historical Data Retrieval
 
 investpy allows the user to **download both recent and historical data from any financial product indexed** 
@@ -79,7 +83,7 @@ Date
 To get to know all the available recent and historical data extraction functions provided by 
 investpy, and also, parameter tuning, please read the docs.
 
-### :mag: Search Data
+### :mag: Search Live Data
 
 **Investing.com search engine is completely integrated** with investpy, which means that any available 
 financial product (quote) can be easily found. The search function allows the user to tune the parameters 
@@ -90,35 +94,27 @@ presented in the following piece of code:
 ```python
 import investpy
 
-search_results = investpy.search_quotes(text='apple',
-                                        products=['stocks'],
-                                        countries=['united states'],
-                                        n_results=10)
+search_result = investpy.search_quotes(text='apple', products=['stocks'],
+                                       countries=['united states'], n_results=1)
+print(search_result)
+```
+```json
+{"id_": 6408, "name": "Apple Inc", "symbol": "AAPL", "country": "united states", "tag": "/equities/apple-computer-inc", "pair_type": "stocks", "exchange": "NASDAQ"}
 ```
 
-Retrieved search results will be a `list` of `investpy.utils.search_obj.SearchObj` class instances. To get to know 
-which are the available functions and attributes of the returned search results, please read the related 
+Retrieved search results will be a `list` of `investpy.utils.search_obj.SearchObj` class instances, unless
+`n_results` is set to 1, when just a single `investpy.utils.search_obj.SearchObj` class instance will be returned.
+To get to know which are the available functions and attributes of the returned search results, please read the related 
 documentation at [Search Engine Documentation](https://investpy.readthedocs.io/search_api.html). So on, those 
-search results let the user retrieve both recent and historical data from that concrete product, its 
-information, etc., as presented in the  piece of code below:
+search results let the user retrieve both recent and historical data, its information, the technical indicators,
+the default currency, etc., as presented in the piece of code below:
 
 ```python
- for search_result in search_results[:1]:
-   print(search_result)
-   search_result.retrieve_historical_data(from_date='01/01/2019', to_date='01/01/2020')
-   print(search_result.data.head())
-```
-```{r, engine='python', count_lines}
-{"id_": 6408, "name": "Apple Inc", "symbol": "AAPL", "country": "united states", "tag": "apple-computer-inc", "pair_type": "stocks", "exchange": "NASDAQ"}
-
-              Open    High     Low   Close    Volume
-Date                                                
-2019-01-02  154.89  158.85  154.23  157.92  37039736
-2019-01-03  143.98  145.72  142.00  142.19  91312192
-2019-01-04  144.53  148.55  143.80  148.26  58607072
-2019-01-07  148.70  148.83  145.90  147.93  54777764
-2019-01-08  149.56  151.82  148.52  150.75  41025312
-
+recent_data = search_result.retrieve_recent_data()
+historical_data = search_result.retrieve_historical_data(from_date='01/01/2019', to_date='01/01/2020')
+information = search_result.retrieve_information()
+default_currency = search_result.retrieve_currency()
+technical_indicators = search_result.retrieve_technical_indicators(interval='daily')
 ```
 
 ### :money_with_wings: Crypto Currencies Data Retrieval
@@ -131,7 +127,7 @@ consider it.
 As already presented previously, **historical data retrieval using investpy is really easy**. The piece of code 
 presented below shows how to retrieve the past years of historical data from Bitcoin (BTC).
 
-````python
+```python
 import investpy
 
 data = investpy.get_crypto_historical_data(crypto='bitcoin',
@@ -139,7 +135,7 @@ data = investpy.get_crypto_historical_data(crypto='bitcoin',
                                            to_date='01/01/2019')
 
 print(data.head())
-````
+```
 ```{r, engine='python', count_lines}
              Open    High    Low   Close  Volume Currency
 Date                                                     
@@ -195,6 +191,7 @@ combined with investpy:
 
 - [pyrtfolio](https://github.com/alvarobartt/pyrtfolio/): is a Python package to generate stock portfolios.
 - [trendet](https://github.com/alvarobartt/trendet/): is a Python package for trend detection on stock time-series data.
+- [pypme](https://github.com/ymyke/pypme): is a Python package for PME (Public Market Equivalent) calculation
 
 If you developed an interesting/useful project based on investpy data, please open an issue to let me know to 
 include it in this section.
